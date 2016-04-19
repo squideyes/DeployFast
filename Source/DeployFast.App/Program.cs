@@ -10,7 +10,7 @@
 //    it under the terms of the GNU General Public License as published by  
 //    the Free Software Foundation, either version 3 of the License, or  
 //    (at your option) any later version.  
-  
+
 //    This program is distributed in the hope that it will be useful,  
 //    but WITHOUT ANY WARRANTY; without even the implied warranty of  
 //    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the  
@@ -25,7 +25,7 @@
 //    <website>http://squideyes.com</website>  
 //  </author>  
 //</notice>  
-#endregion 
+#endregion
 
 using DeployFast.Shared.Constants;
 using DeployFast.Shared.Generics;
@@ -51,8 +51,9 @@ namespace DeployFast.App
         private const string CREATING =
             "Creating the \"{0}\" {1}, if it doesn't already exist.";
 
-        private class EventLogInfo
+        private class FailureInfo
         {
+            public Options Options { get; set; }
             public Exception OriginalError { get; set; }
             public Exception LoggingError { get; set; }
         }
@@ -118,8 +119,8 @@ namespace DeployFast.App
 
                 ////////////////////////////////////////////////////////////////
 
-               logger = new Logger(typeof(Program), account, cts,
-                   Properties.Settings.Default.MinSeverity);
+                logger = new Logger(typeof(Program), account, cts,
+                    Properties.Settings.Default.MinSeverity);
 
                 logger.LogToConsole(Severity.Info,
                     $"Deploying \"{options.SourcePath}\\*.*\"");
@@ -166,11 +167,6 @@ namespace DeployFast.App
 
                 await logger.Log(Severity.Debug,
                     $"Uploading the \"{zipFileName}\" archive to \"{blob.Name}\".");
-
-                //var uploader = new FileUploader(connString, 
-                //    zipFileContainer.Name, Environment.ProcessorCount);
-
-                //await uploader.UploadAsync(zipFileName, blob.Name);
 
                 await blob.UploadFromFileAsync(zipFileName);
 
@@ -229,8 +225,9 @@ namespace DeployFast.App
                         "The \"{0}\" error couldn't be logged.  See the EventLog for details.",
                         error.Message.ToSingleLine());
 
-                    var info = new EventLogInfo()
+                    var info = new FailureInfo()
                     {
+                        Options = options,
                         OriginalError = error,
                         LoggingError = loggingError
                     };
@@ -252,7 +249,7 @@ namespace DeployFast.App
         }
 
         private static async Task<CloudBlobContainer> CreateContainer(
-            Logger logger,  CloudBlobClient blobClient, 
+            Logger logger, CloudBlobClient blobClient,
             string containerName, CloudTable logTable)
         {
             var container = blobClient.GetContainerReference(

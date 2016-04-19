@@ -48,9 +48,7 @@ namespace DeployFast.WebJob
             message.From = new MailAddress(
                 ConfigurationManager.AppSettings["AlertFrom"]);
 
-            var alertTos = ConfigurationManager.AppSettings["AlertTos"];
-
-            foreach (var alertTo in alertTos.Split(',', ';'))
+            foreach (var alertTo in info.AlertTos)
                 message.AddTo(alertTo);
 
             message.Subject = $"[DeployFast {info.Outcome}] - {info.ServerName}/{info.AppId}";

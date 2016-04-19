@@ -83,11 +83,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AgentService.cs" />
-    <Compile Include="AzureExtenders.cs" />
-    <Compile Include="Deployer.cs" />
-    <Compile Include="DeployTosSection.cs" />
-    <Compile Include="Options.cs" />
+    <Compile Include="Service\AgentService.cs" />
+    <Compile Include="Extenders\AzureExtenders.cs" />
+    <Compile Include="Service\Worker.cs" />
+    <Compile Include="Config\DeployTosSection.cs" />
+    <Compile Include="Primatives\Options.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -104,6 +104,7 @@
       <Name>DeployFast.Shared</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

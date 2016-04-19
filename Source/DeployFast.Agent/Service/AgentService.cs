@@ -34,7 +34,7 @@ namespace DeployFast.Agent
 {
     public class AgentService
     {
-        private Deployer deployer = null;
+        private Worker deployer = null;
 
         public AgentService()
         {
@@ -42,7 +42,7 @@ namespace DeployFast.Agent
 
         public void Start()
         {
-            deployer = new Deployer(int.Parse(ConfigurationManager
+            deployer = new Worker(int.Parse(ConfigurationManager
                 .AppSettings["PollingSeconds"]));
 
             Task.Factory.StartNew(() => deployer.Start(), 

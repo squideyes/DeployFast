@@ -90,7 +90,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FileUploader.cs" />
     <Compile Include="MiscExtenders.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />
@@ -100,7 +99,6 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="Statistics.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\DeployFast.licenseheader">

@@ -48,7 +48,7 @@ using DeployFast.Shared.Logging;
 
 namespace DeployFast.Agent
 {
-    public class Deployer
+    public class Worker
     {
         private CloudTable controlTable;
         private CloudQueue alertQueue;
@@ -59,7 +59,7 @@ namespace DeployFast.Agent
         private Dictionary<string, string> deployTos =
             new Dictionary<string, string>();
 
-        public Deployer(int pollAfterSeconds)
+        public Worker(int pollAfterSeconds)
         {
             if (pollAfterSeconds < 10)
                 throw new ArgumentOutOfRangeException(nameof(pollAfterSeconds));
@@ -117,6 +117,9 @@ namespace DeployFast.Agent
                 var entities = await controlTable.ExecuteQueryAsync<ControlEntity>(
                     query, CancellationTokenSource.Token);
 
+                if (CancellationTokenSource.IsCancellationRequested)
+                    return;
+
                 foreach (var entity in entities)
                 {
                     await Deploy(entity);
@@ -165,12 +168,12 @@ namespace DeployFast.Agent
 
                 await blob.DownloadToFileAsync(sourceFileName, FileMode.Create);
 
-                if (CancellationTokenSource.IsCancellationRequested)
-                    return;
-
                 await logger.Log(Severity.Debug, $"Successfully downloaded \"{blob.Uri}\"");
 
                 //////////////////////////////////////////////////////////////////
+
+                if (CancellationTokenSource.IsCancellationRequested)
+                    return;
 
                 var filesToSkip = new HashSet<string>(
                     ConfigurationManager.AppSettings["FilesToSkip"]
@@ -179,14 +182,8 @@ namespace DeployFast.Agent
                 var tempPath = Path.Combine(
                     Path.GetTempPath(), Guid.NewGuid().ToString("N"));
 
-                var deployTo = deployTos[entity.RowKey].WithSlash();
-
-                deployTo.EnsurePathExists();
-
                 await logger.Log(Severity.Debug,
                     $"Unzipping \"{sourceFileName}\" to \"{tempPath}\"");
-
-                //////////////////////////////////////////////////////////////////
 
                 int count = 0;
 
@@ -210,21 +207,25 @@ namespace DeployFast.Agent
                         count++;
                     }
                 }
-
-                //////////////////////////////////////////////////////////////////
-
                 if (CancellationTokenSource.IsCancellationRequested)
                     return;
 
                 await logger.Log(Severity.Info,
                     $"Unzipped {count:N0} files from \"{sourceFileName}\" to \"{tempPath}\"");
 
+                //////////////////////////////////////////////////////////////////
+
+                if (CancellationTokenSource.IsCancellationRequested)
+                    return;
+
+                var deployTo = deployTos[entity.RowKey].WithSlash();
+
                 await logger.Log(Severity.Debug,
                     $"Deleting all non-skipped files from \"{deployTo}\"");
 
-                //////////////////////////////////////////////////////////////////
-
                 count = 0;
+
+                deployTo.EnsurePathExists();
 
                 var fileNames = Directory.GetFiles(
                     deployTo, "*.*", SearchOption.AllDirectories);
@@ -244,8 +245,6 @@ namespace DeployFast.Agent
                     count++;
                 }
 
-                //////////////////////////////////////////////////////////////////
-
                 await logger.Log(Severity.Info,
                     $"Deleted {count:N0} files from \"{deployTo}\"");
 
@@ -254,15 +253,13 @@ namespace DeployFast.Agent
                 if (CancellationTokenSource.IsCancellationRequested)
                     return;
 
-                var filesToCopy = Directory.GetFiles(tempPath, "*.*",
+                var filesToMove = Directory.GetFiles(tempPath, "*.*",
                     SearchOption.AllDirectories).ToList();
 
                 await logger.Log(Severity.Debug,
-                    $"Copying {filesToCopy.Count:N0} files to \"{deployTo}\"");
+                    $"Copying {filesToMove.Count:N0} files to \"{deployTo}\"");
 
-                //////////////////////////////////////////////////////////////////
-
-                foreach (var fileName in filesToCopy)
+                foreach (var fileName in filesToMove)
                 {
                     if (CancellationTokenSource.IsCancellationRequested)
                         return;
@@ -276,7 +273,7 @@ namespace DeployFast.Agent
                 }
 
                 await logger.Log(Severity.Info,
-                    $"Copied {filesToCopy.Count:N0} files to \"{deployTo}\"");
+                    $"Copied {filesToMove.Count:N0} files to \"{deployTo}\"");
 
                 //////////////////////////////////////////////////////////////////
 
@@ -289,12 +286,12 @@ namespace DeployFast.Agent
 
                 Directory.Delete(tempPath, true);
 
-                if (CancellationTokenSource.IsCancellationRequested)
-                    return;
-
                 File.Delete(sourceFileName);
 
                 //////////////////////////////////////////////////////////////////
+
+                if (CancellationTokenSource.IsCancellationRequested)
+                    return;
 
                 await DeployNextCanDeploy(entity.RowKey);
             }
@@ -304,6 +301,9 @@ namespace DeployFast.Agent
 
                 await UpdateStatus(entity, DeployStatus.Error);
             }
+
+            if (CancellationTokenSource.IsCancellationRequested)
+                return;
 
             await alertQueue.AddMessageAsync(new CloudQueueMessage(
                 JsonConvert.SerializeObject(alertInfo)));
