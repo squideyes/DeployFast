@@ -1,0 +1,1 @@
+/SOURCE:C:\Users\lberman\Documents\IMS Stuff\IMS\App\App_BentleyIT.IMS_20160304.1 /APPID:Application /BUILD:App_BentleyIT.IMS_20160304.1 /SERVERS:LBERMAN-SFCPR4 /ALERTSTO:louis@squideyes.com;lberman@microsoft.com
