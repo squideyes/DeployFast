@@ -34,7 +34,7 @@ namespace DeployFast.Agent
 {
     public class AgentService
     {
-        private Worker deployer = null;
+        private Worker worker = null;
 
         public AgentService()
         {
@@ -42,17 +42,17 @@ namespace DeployFast.Agent
 
         public void Start()
         {
-            deployer = new Worker(int.Parse(ConfigurationManager
+            worker = new Worker(int.Parse(ConfigurationManager
                 .AppSettings["PollingSeconds"]));
 
-            Task.Factory.StartNew(() => deployer.Start(), 
-                deployer.CancellationTokenSource.Token);
+            Task.Factory.StartNew(() => worker.Start(), 
+                worker.CancellationTokenSource.Token);
         }
 
         public void Stop()
         {
-            if (deployer != null)
-                deployer.Stop();
+            if (worker != null)
+                worker.Stop();
         }
     }
 }

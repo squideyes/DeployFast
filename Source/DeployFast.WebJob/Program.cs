@@ -39,6 +39,7 @@ namespace DeployFast.WebJob
             var config = new JobHostConfiguration();
 
             config.UseSendGrid();
+
             config.Tracing.ConsoleLevel = TraceLevel.Verbose;
 
             var host = new JobHost(config);

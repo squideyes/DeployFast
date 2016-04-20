@@ -10,7 +10,7 @@
 //    it under the terms of the GNU General Public License as published by  
 //    the Free Software Foundation, either version 3 of the License, or  
 //    (at your option) any later version.  
-  
+
 //    This program is distributed in the hope that it will be useful,  
 //    but WITHOUT ANY WARRANTY; without even the implied warranty of  
 //    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the  
@@ -25,7 +25,7 @@
 //    <website>http://squideyes.com</website>  
 //  </author>  
 //</notice>  
-#endregion 
+#endregion
 
 using DeployFast.Shared.Constants;
 using Microsoft.WindowsAzure.Storage;
@@ -45,6 +45,7 @@ using Newtonsoft.Json;
 using Microsoft.WindowsAzure.Storage.Queue;
 using DeployFast.Shared;
 using DeployFast.Shared.Logging;
+using SafeConfig;
 
 namespace DeployFast.Agent
 {
@@ -68,13 +69,17 @@ namespace DeployFast.Agent
 
             CancellationTokenSource = new CancellationTokenSource();
 
-            var config = ConfigurationManager.GetSection("deployTos")
+            var section = ConfigurationManager.GetSection("deployTos")
                  as DeployTosSection;
 
-            foreach (DeployToElement e in config.Instances)
+            foreach (DeployToElement e in section.Instances)
                 deployTos.Add(e.AppId, e.DeployTo);
 
-            var connString = ConfigurationManager.AppSettings["ConnString"];
+            var connString = new ConfigManager()
+                .AtFolder(ConfigurationManager.AppSettings["SettingsFolder"])
+                //.WithCurrentUserScope()  // discusss issues with team
+                .Load()
+                .Get<string>("ConnString"); // make WellKnown            
 
             var account = CloudStorageAccount.Parse(connString);
 
@@ -100,6 +105,7 @@ namespace DeployFast.Agent
 
         public async Task Start()
         {
+            // do I need this????????????????????
             await alertQueue.CreateIfNotExistsAsync();
 
             CancellationTokenSource = new CancellationTokenSource();
@@ -127,9 +133,6 @@ namespace DeployFast.Agent
                     if (CancellationTokenSource.IsCancellationRequested)
                         break;
                 }
-
-                if (CancellationTokenSource.IsCancellationRequested)
-                    break;
 
                 await Task.Delay(pollDelay, CancellationTokenSource.Token);
             }
@@ -207,6 +210,7 @@ namespace DeployFast.Agent
                         count++;
                     }
                 }
+
                 if (CancellationTokenSource.IsCancellationRequested)
                     return;
 

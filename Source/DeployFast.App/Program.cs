@@ -103,6 +103,7 @@ namespace DeployFast.App
 
                 var connString = new ConfigManager()
                     .AtFolder(Properties.Settings.Default.SettingsFolder)
+                    //.WithCurrentUserScope()  // discusss issues with team
                     .Load()
                     .Get<string>(CONNSTRING);
 
@@ -222,8 +223,9 @@ namespace DeployFast.App
                 catch (Exception loggingError)
                 {
                     logger.LogToConsole(Severity.Failure,
-                        "The \"{0}\" error couldn't be logged.  See the EventLog for details.",
-                        error.Message.ToSingleLine());
+                        "The \"{0}\" error couldn't be logged.  See the \"{1}\" folder for details.",
+                        error.Message.ToSingleLine(),
+                        Properties.Settings.Default.FailureLogsPath);
 
                     var info = new FailureInfo()
                     {

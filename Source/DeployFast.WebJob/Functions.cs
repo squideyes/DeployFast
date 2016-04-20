@@ -40,7 +40,7 @@ namespace DeployFast.WebJob
 {
     public class Functions
     {
-        public static void ProcessQueueMessage(
+        public static void ProcessAlertInfoMessage(
             [QueueTrigger("alerts")] AlertInfo info,
             TextWriter log,
             [SendGrid] SendGridMessage message)
@@ -68,11 +68,9 @@ namespace DeployFast.WebJob
                 text.AppendLine(info.Error.ToString());
             }
 
-            text.AppendLine();
-
             message.Text = text.ToString();
 
-            log.WriteLine($"Sent {info} alert to \"{alertTos}\"");
+            log.WriteLine($"Sent {info} alert to \"{string.Join(";", info.AlertTos)}\"");
         }
     }
 }

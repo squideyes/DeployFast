@@ -10,7 +10,7 @@
 //    it under the terms of the GNU General Public License as published by  
 //    the Free Software Foundation, either version 3 of the License, or  
 //    (at your option) any later version.  
-  
+
 //    This program is distributed in the hope that it will be useful,  
 //    but WITHOUT ANY WARRANTY; without even the implied warranty of  
 //    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the  
@@ -25,7 +25,7 @@
 //    <website>http://squideyes.com</website>  
 //  </author>  
 //</notice>  
-#endregion 
+#endregion
 
 using DeployFast.Shared.Constants;
 using Microsoft.WindowsAzure.Storage;
@@ -41,7 +41,7 @@ namespace DeployFast.Agent
     {
         static void Main(string[] args)
         {
-            if (args.Length>0)
+            if (args.Length > 0)
             {
                 var cmd = string.Join(" ", args);
 
@@ -78,6 +78,8 @@ namespace DeployFast.Agent
             }
         }
 
+        // See Topshelf Command Line Parameters for installation
+        // http://docs.topshelf-project.com/en/latest/overview/commandline.html
         private static void RunService()
         {
             HostFactory.Run(x =>
@@ -89,10 +91,11 @@ namespace DeployFast.Agent
                     s.WhenStopped(tc => tc.Stop());
                 });
 
+                //May want to change this!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 x.RunAsLocalSystem();
 
-                x.SetDescription("FastDeploy Agent");
-                x.SetDisplayName("FastDeploy Agent");
+                x.SetDescription("DeployFast Agent");
+                x.SetDisplayName("DeployFast Agent");
                 x.SetServiceName("DeployFast");
             });
         }
